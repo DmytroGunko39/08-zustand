@@ -5,6 +5,8 @@ import type { NewNoteData, NoteTag } from '../../types/note';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { createNote } from '@/lib/api';
+import { useDraftNote } from '@/lib/store/noteStore';
+import { ChangeEvent } from 'react';
 
 export interface NoteFormProps {
   initialValues?: {
@@ -21,11 +23,13 @@ export default function NoteForm({
   cancelHref = '/notes/filter/All',
   serverErrors,
 }: NoteFormProps) {
+  const { draft, setDraft, clearDraft } = useDraftNote();
   const router = useRouter();
 
   const { mutate, isPending, error } = useMutation({
     mutationFn: (noteData: NewNoteData) => createNote(noteData),
     onSuccess: () => {
+      clearDraft();
       router.push('/notes/filter/All');
     },
   });
@@ -36,6 +40,15 @@ export default function NoteForm({
     const values = Object.fromEntries(formData) as unknown as NewNoteData;
     mutate(values);
   };
+
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
+    setDraft({
+      ...(draft as NewNoteData),
+      [e.target.name as keyof NewNoteData]: e.target.value,
+    });
+  };
   return (
     <form className={css.form} onSubmit={handleSubmit}>
       <div className={css.formGroup}>
@@ -45,10 +58,11 @@ export default function NoteForm({
           type="text"
           name="title"
           className={css.input}
-          defaultValue={initialValues?.title ?? ''}
+          defaultValue={initialValues?.title ?? draft.title ?? ''}
           required
           minLength={3}
           maxLength={50}
+          onChange={handleChange}
         />
         {serverErrors?.title && (
           <span className={css.error}>{serverErrors.title}</span>
@@ -62,8 +76,9 @@ export default function NoteForm({
           name="content"
           rows={8}
           className={css.textarea}
-          defaultValue={initialValues?.content ?? ''}
+          defaultValue={initialValues?.content ?? draft.content ?? ''}
           maxLength={500}
+          onChange={handleChange}
         />
         {serverErrors?.content && (
           <span className={css.error}>{serverErrors.content}</span>
@@ -77,8 +92,9 @@ export default function NoteForm({
           id="tag"
           name="tag"
           className={css.select}
-          defaultValue={initialValues?.tag ?? 'Todo'}
+          defaultValue={initialValues?.tag ?? draft.tag ?? 'Todo'}
           required
+          onChange={handleChange}
         >
           <option value="Todo">Todo</option>
           <option value="Work">Work</option>

@@ -10,9 +10,9 @@ export interface Note {
 }
 
 export interface NewNoteData {
+  title: string;
   content: string;
   tag: NoteTag;
-  title: string;
 }
 
 export interface DeleteNoteResponse {
