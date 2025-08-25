@@ -110,9 +110,12 @@ export default function NoteForm({
       </div>
 
       <div className={css.actions}>
-        <a className={css.cancelButton} href={cancelHref}>
+        <button
+          className={css.cancelButton}
+          onClick={() => router.push(cancelHref)}
+        >
           Cancel
-        </a>
+        </button>
         <button type="submit" className={css.submitButton}>
           {isPending ? 'Creating note...' : 'Create note'}
         </button>
